@@ -69,7 +69,7 @@ def menu_set_search_params(user_id, db: Vkinder_DB, bot: Vkinder_Bot):
     user_info = bot.get_user_info(user_id)
     search_params = {'gender': user_info['sex'] % 2 + 1}
 
-    bot.send_msg(user_id, 'Какого года рождения будем искать?',
+    bot.send_msg(user_id, 'Желаемый год рождения кандидата для знакомства: (ГГГГ)',
                  keyboard=get_empty_keyboard())
     for event in bot.longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW \
@@ -81,7 +81,7 @@ def menu_set_search_params(user_id, db: Vkinder_DB, bot: Vkinder_Bot):
             else:
                 bot.send_msg(user_id, 'Неверный ввод')
 
-    bot.send_msg(user_id, 'Семейное положение?\n'
+    bot.send_msg(user_id, 'Выберете код статуса кандитдата из списка:\n'
                           '1 — не женат/не замужем;\n'
                           '2 — есть друг/есть подруга;\n'
                           '3 — помолвлен/помолвлена;\n'
@@ -103,7 +103,7 @@ def menu_set_search_params(user_id, db: Vkinder_DB, bot: Vkinder_Bot):
                 print(event.text)
                 bot.send_msg(user_id, 'Неверный ввод')
 
-    bot.send_msg(user_id, 'Город?')
+    bot.send_msg(user_id, 'В каком населенном пункте искать')
     for event in bot.longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW \
                 and event.to_me \
@@ -137,7 +137,7 @@ def menu_start(user_id, db, bot):
         add_new_user(event.user_id, db)
 
 
-    bot.send_msg(user_id, 'Занес тебя в базу', get_start_keyboard())
+    bot.send_msg(user_id, 'Занесла тебя в базу', get_start_keyboard())
 
 
 def menu_next(user_id, db, bot):
@@ -154,11 +154,11 @@ def menu_next(user_id, db, bot):
                          attachment=request['attach'],
                          keyboard=get_next_fav_keyboard())
         else:
-            bot.send_msg(user_id, 'Начинаю поиск вариантов')
+            bot.send_msg(user_id, 'Ведётся поиск вариантов')
             search_list = list(bot.search_all_users(params))
 
             if not search_list:
-                bot.send_msg(user_id, 'Вариантов нет',
+                bot.send_msg(user_id, 'Вариантов не найдено',
                              keyboard=get_start_keyboard())
                 return
 
@@ -181,25 +181,24 @@ if __name__ == '__main__':
     db.drop_all()
     db.init_db()
     menu = {
-        'Начать': menu_start,
-        'Изменить параметры поиска': menu_set_search_params,
-        'Показать страницы': menu_next,
-        'Дальше': menu_next,
+        'начать': menu_start,
+        'изменить параметры поиска': menu_set_search_params,
+        'показать страницы': menu_next,
+        'дальше': menu_next,
     }
 
     for event in bot.longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW:
             if event.to_me:
-                request = event.text
+                request = event.text.lower()
                 try:
                     if request in menu:
                         menu[request](event.user_id, db, bot)
                     else:
                         bot.send_msg(event.user_id,
-                                     f" Не понял вашего запроса...\n"
-                                     f" Для начала поиска введите: \n"
-                                     f"Начать\n"
-                                     f"Дальше\n"
+                                     f" Вас приветствует электронная сваха, уточните запрос:\n"
+                                     f" Для начала поиска введите: Начать\n"
+                                     f"Для продолжения поиска введите: Дальше\n"
                                      f" И далее следуйте командам или используйте кнопки бота")
                 except Exception as e:
                     logging.error(e, exc_info=True)
